@@ -1,0 +1,6 @@
+0.02  Tue May 19 01:39:36 CDT 2009
+  - Added ul_container param. Specifies HTML element to contain the menu UL.
+  - Documented add_menus constructor parameter.
+0.01  Mon Apr 27 15:12:57 CDT 2009
+  - Alpha release
+

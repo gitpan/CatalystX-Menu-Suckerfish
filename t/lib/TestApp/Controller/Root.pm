@@ -26,8 +26,6 @@ my $frozen_tree = <<'EOF';
 };
 EOF
 
-my $tree = eval $frozen_tree;
-
 sub begin :Private {
     my ($self, $c) = @_;
 
@@ -42,12 +40,31 @@ sub begin :Private {
     );
 
     $c->stash->{menu} = $menu->output;
+
+    # generate a menu for use with Filament Group iPod menu jQuery plugin
+    $menu = CatalystX::Menu::Suckerfish->new(
+        context => $c,
+        menupath_attr => 'MenuPath',
+        top_order => [qw(Main * Help)],
+        ul_container => { element => 'div', attrs => { id => 'divid', class => 'hidden' } },
+        text_container => { element => 'a', attrs => { href => '#' } },
+    );
+
+    $c->stash->{menu_in_div} = $menu->output;
 }
 
 sub index :Path :Args(0) {
     my ($self, $c) = @_;
+}
 
+sub menu :Local {
+    my ($self, $c) = @_;
     $c->res->body($c->stash->{menu});
+}
+
+sub menu_in_div :Local {
+    my ($self, $c) = @_;
+    $c->res->body($c->stash->{menu_in_div});
 }
 
 sub public

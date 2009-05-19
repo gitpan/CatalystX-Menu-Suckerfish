@@ -10,15 +10,13 @@ use base 'CatalystX::Menu::Tree';
 use HTML::Entities;
 use HTML::Element;
 use MRO::Compat;
-use mro 'c3';
-Class::C3::initialize();
 
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 =head1 NAME
 
-CatalystX::Menu::Suckerfish - Generate an HTML UL element for use as a CSS-enhanced Suckerfish menu.
+CatalystX::Menu::Suckerfish - Generate HTML UL for a CSS-enhanced Suckerfish menu
 
 =head1 SYNOPSIS
 
@@ -52,6 +50,13 @@ CatalystX::Menu::Suckerfish - Generate an HTML UL element for use as a CSS-enhan
                 grep {UNIVERSAL::isa($actions{$_}, 'Catalyst::Action::Role::ACL')}
                 keys %actions;
         },
+        add_nodes => [      # add a menu node manually
+            {
+                menupath => '/Bargains',
+                menutitle => 'Cheap stuff',
+                uri => '/products/cheap',
+            },
+        ],
      );
 
      $c->session->{navmenu} = $menu->output;
@@ -81,6 +86,39 @@ Params
 
 =over
 
+=item menupath_attr
+
+Required (no validation)
+
+Names the action attribute that contains the menu path:
+
+ menupath_attr => 'MenuPath'
+
+ # and in your controller:
+
+ sub foobar :Local
+ :MenuPath(/Foo/Bar)
+ :MenuTitle('Foobar and stuff')
+ { ... }
+
+Only actions with the menupath_attr attribute are processed. This attribute's
+value determines where the action's menu item is placed in the menu structure
+(HTML UL).
+
+Depending on the attribute values collected from the processed actions, there
+may be menu items containing only text.  If you want a link to a landing page,
+for example, instead of text, include an action for the landing page with the
+appropriate MenuPath attribute in your controller, or add an entry manually
+with the add_nodes parameter.
+
+=item menutitle_attr
+
+Optional
+
+The menutitle_attr attribute will be used to add the HTML title attribute to
+each list item. This should result in a balloon text with the title when the
+pointing device hovers over each list item.
+
 =item ul_id
 
 The ID attribute to be applied to the outer HTML UL element.
@@ -88,6 +126,11 @@ The ID attribute to be applied to the outer HTML UL element.
 =item ul_class
 
 The class attribute to be applied to the outer HTML UL element.
+
+=item ul_container
+
+Specifies an HTML element (typically a DIV) in which to enclose the UL
+element.
 
 =item text_container
 
@@ -100,6 +143,12 @@ to both plain text and A elements for consistent appearance.
 A list of top level menu item labels. Menu items are sorted alphabetically by
 default. top_order allows you to specify the order of one or more items. The
 asterisk (*) inserts any menu items not listed in top_order.
+
+=item add_nodes
+
+Optional
+
+A reference to an array of hash references. See the L</SYNOPSIS>.
 
 =back
 
@@ -147,6 +196,14 @@ sub output {
     }
 
     my $indent = ' ' x 4;
+
+    if (my $ctr = $self->{ul_container}) {
+        my $el = $ctr->{element};
+        my %opts = ( %{$ctr->{attrs}} );
+        my $ctr_el = $h->new($el, %opts);
+        $ctr_el->push_content($h);
+        $h = $ctr_el;
+    }
 
     return $h->as_HTML(undef, $indent, {});
 }

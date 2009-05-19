@@ -1,4 +1,5 @@
 .svnignore
+Changes
 gitignore
 inc/Module/Install.pm
 inc/Module/Install/Base.pm
